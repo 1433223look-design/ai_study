@@ -1895,16 +1895,20 @@ body {
 .question-diagram {
   display: flex;
   justify-content: center;
+  align-items: center;
   margin-bottom: 20px;
   padding: 15px;
   background: #fafafa;
   border: 1px solid #e8e8e8;
   border-radius: 8px;
+  overflow: hidden;
 }
 
 .question-diagram svg {
   max-width: 100%;
   height: auto;
+  display: block;
+  width: 320px;
 }
 
 .diagram-loading {
@@ -2949,4 +2953,26 @@ body::before {
     top: 10px; right: 10px; left: 10px;
   }
   .achievement-toast { font-size: 0.85rem; padding: 10px 16px; }
+
+  /* 手机端配图适配 */
+  .question-diagram {
+    padding: 10px;
+    margin-bottom: 15px;
+  }
+  .question-diagram svg {
+    width: 100% !important;
+    max-width: 100%;
+    height: auto !important;
+  }
+  .question-card {
+    padding: 16px;
+  }
+  .question-text {
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+  .option-btn {
+    padding: 12px 14px;
+    font-size: 0.9rem;
+  }
 }

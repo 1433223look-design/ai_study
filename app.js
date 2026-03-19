@@ -219,10 +219,20 @@
     if (!svgStr || typeof svgStr !== 'string') return '';
     const svgMatch = svgStr.match(/<svg[\s\S]*?<\/svg>/i);
     if (!svgMatch) return '';
-    return svgMatch[0]
+    let svg = svgMatch[0]
       .replace(/<script[\s\S]*?<\/script>/gi, '')
       .replace(/on\w+\s*=\s*"[^"]*"/gi, '')
       .replace(/on\w+\s*=\s*'[^']*'/gi, '');
+    // 手机适配：确保viewBox存在，去掉固定宽高让SVG自适应容器
+    const wMatch = svg.match(/width\s*=\s*["'](\d+)/i);
+    const hMatch = svg.match(/height\s*=\s*["'](\d+)/i);
+    if (!svg.includes('viewBox') && wMatch && hMatch) {
+      svg = svg.replace(/<svg/, `<svg viewBox="0 0 ${wMatch[1]} ${hMatch[1]}"`);
+    }
+    // 去掉固定宽高，用CSS控制尺寸
+    svg = svg.replace(/(<svg[^>]*?)\s*width\s*=\s*["']\d+[^"']*["']/i, '$1');
+    svg = svg.replace(/(<svg[^>]*?)\s*height\s*=\s*["']\d+[^"']*["']/i, '$1');
+    return svg;
   }
 
   formatAIResponse(text) {
@@ -402,7 +412,7 @@
     alert('API Key 已清除');
   }
 
-  async callAI(messages, temperature = 0.7) {
+  async callAI(messages, temperature = 0.7, maxTokens = 2000) {
     if (!this.checkApiKey()) throw new Error('未配置 API Key');
 
     const resp = await fetch(this.AI_API_URL, {
@@ -415,7 +425,7 @@
         model: this.AI_MODEL,
         messages,
         temperature,
-        max_tokens: 2000
+        max_tokens: maxTokens
       })
     });
 
@@ -441,6 +451,12 @@
     const btn = document.getElementById('startPracticeBtn');
     btn.disabled = true;
     btn.textContent = '🤔 AI 正在出题...';
+    const stages = ['🤔 AI 正在构思...', '✍️ 正在组织题目...', '🧠 正在打磨选项...', '📝 即将完成...'];
+    let stageIdx = 0;
+    const stageTimer = setInterval(() => {
+      stageIdx = Math.min(stageIdx + 1, stages.length - 1);
+      btn.textContent = stages[stageIdx];
+    }, 3000);
 
     try {
       const topicHint = topic ? `，知识点范围：${topic}` : '';
@@ -537,10 +553,14 @@ ${gradeScope}
       this.playSound('start');
       this.showQuestion();
 
+      // 并行生成所有配图（不阻塞做题）
+      this.batchGenerateDiagrams(questions);
+
     } catch (err) {
       alert('出题失败：' + err.message);
     }
 
+    clearInterval(stageTimer);
     btn.disabled = false;
     btn.textContent = '🚀 开始出题';
   }
@@ -676,13 +696,7 @@ ${gradeScope}
     document.getElementById(nextBtnId).style.display = isLast ? 'none' : 'inline-block';
     document.getElementById(finishBtnId).style.display = isLast ? 'inline-block' : 'none';
 
-    // 预加载下一题的配图
-    if (!isLast) {
-      const nextQ = quiz.questions[quiz.currentIndex + 1];
-      if (nextQ.diagramDesc && nextQ.diagramDesc.trim() && !nextQ._diagramSvg) {
-        this.generateDiagramForQuestion(quiz.currentIndex + 1, nextQ);
-      }
-    }
+    // 配图已在 batchGenerateDiagrams 中并行生成，无需单独预加载
   }
 
   nextQuestion() {
@@ -1007,6 +1021,9 @@ ${gradeScope}
 
       document.getElementById('targetedArea').style.display = 'block';
       this.showQuestion('targetedQuestionCard', 'targetedFeedback', 'targetedNextBtn', 'targetedFinishBtn', 'targetedProgressText', null);
+
+      // 并行生成所有配图
+      this.batchGenerateDiagrams(questions);
 
     } catch (err) {
       alert('出题失败：' + err.message);
@@ -1718,30 +1735,29 @@ ${wrongSummary || '无'}
 
   // ==================== 题目配图生成 ====================
 
+  batchGenerateDiagrams(questions) {
+    const tasks = [];
+    questions.forEach((q, idx) => {
+      if (q.diagramDesc && q.diagramDesc.trim() && !q._diagramSvg) {
+        tasks.push(this.generateDiagramForQuestion(idx, q));
+      }
+    });
+    if (tasks.length > 0) Promise.allSettled(tasks);
+  }
+
   async generateDiagramForQuestion(qIndex, question, containerId) {
     try {
       const desc = question.diagramDesc;
       const subject = this.currentQuiz?.subject || '';
-      const prompt = `请根据以下描述，为一道${subject}题目生成一个SVG配图（宽320 高200）：
-
+      const prompt = `为${subject}题生成SVG配图（宽320高200）：
 题目：${question.question}
-配图描述：${desc}
-
-要求：
-1. 直接输出SVG代码，不要包含任何markdown标记或解释文字
-2. 风格仿照中国中学考试试卷上的配图：黑白简洁、线条清晰
-3. 线条用黑色(#333)，线宽1.5-2px
-4. 文字标注用 font-family:SimSun,serif，font-size:14px
-5. 力的箭头要有清晰方向，标注力的名称(F、f、N、G、F拉等)
-6. 物体用矩形表示，地面用斜线阴影表示
-7. 电路图用标准电路符号
-8. 几何图形标注顶点字母、角度、边长
-9. SVG以 <svg 开头，以 </svg> 结尾`;
+描述：${desc}
+要求：直接输出SVG，黑白简洁，线条#333，文字SimSun 14px，以<svg开头</svg>结尾，不要其他文字。`;
 
       const reply = await this.callAI([
-        { role: 'system', content: '你是专业的中学试卷配图生成器。只输出SVG代码，不要返回任何其他文字。' },
+        { role: 'system', content: '只输出SVG代码，不要任何其他文字。' },
         { role: 'user', content: prompt }
-      ], 0.3);
+      ], 0.3, 1200);
 
       const svg = this.sanitizeSvg(reply);
       if (svg) {
