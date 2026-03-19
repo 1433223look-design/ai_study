@@ -1,0 +1,355 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 修炼场 - 刷题升级</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a0e1a">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+</head>
+<body>
+  <canvas id="particleCanvas"></canvas>
+  <div id="achievementContainer"></div>
+  <div class="app-container">
+    <header class="header">
+      <div class="header-content">
+        <h1>⚔️ AI 修炼场</h1>
+        <p class="subtitle">每一道题，都是一场战斗！</p>
+        <div class="game-status">
+          <div class="level-badge">
+            <span class="level-icon">⚡</span>
+            <span class="level-text" id="levelDisplay">Lv.1</span>
+            <span class="level-title" id="levelTitle">学徒</span>
+          </div>
+          <div class="xp-bar-container">
+            <div class="xp-bar-fill" id="xpBar"></div>
+            <span class="xp-text" id="xpText">0 / 100 XP</span>
+          </div>
+        </div>
+        <div class="user-info">
+          <span id="gradeDisplay"></span>
+          <button onclick="app.toggleMusic()" class="btn-game-icon" id="musicToggle" title="背景音乐">🎵</button>
+          <button onclick="app.changeApiKey()" class="btn-game-icon" title="AI设置">⚙️</button>
+          <button onclick="app.showSettings()" class="btn-game-icon" title="设置">📋</button>
+        </div>
+      </div>
+    </header>
+
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-view="practice">⚔️ 刷题</button>
+      <button class="nav-tab" data-view="wrong-book">📕 错题</button>
+      <button class="nav-tab" data-view="targeted">🎯 特训</button>
+      <button class="nav-tab" data-view="ai-tutor">🤖 AI助手</button>
+      <button class="nav-tab" data-view="stats">📊 战绩</button>
+    </nav>
+
+    <main class="main-content">
+
+      <!-- ===== 做题练习 ===== -->
+      <section id="practiceView" class="view-section">
+        <div class="section-header">
+          <h2>⚔️ 刷题修炼</h2>
+        </div>
+
+        <div id="practiceSetup" class="practice-setup">
+          <div class="form-row">
+            <div class="form-group">
+              <label>科目</label>
+              <select id="practiceSubject">
+                <option value="数学">数学</option>
+                <option value="物理">物理</option>
+                <option value="英语">英语</option>
+                <option value="语文">语文</option>
+                <option value="化学">化学</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>难度</label>
+              <select id="practiceDifficulty">
+                <!-- JS根据年级动态填充 -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label>题数</label>
+              <input type="number" id="practiceCount" min="1" max="10" value="5">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>知识点（可选）</label>
+            <input type="text" id="practiceTopic" placeholder="如：二次函数、欧姆定律、力学分析...">
+          </div>
+          <button id="startPracticeBtn" class="btn-ai">🚀 开始出题</button>
+        </div>
+
+        <div id="practiceArea" style="display:none;">
+          <div class="practice-progress-bar">
+            <span id="practiceProgressText">第 1 / 5 题</span>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="practiceProgressBar"></div>
+            </div>
+          </div>
+
+          <div id="questionCard" class="question-card"></div>
+
+          <div id="answerFeedback" class="answer-feedback" style="display:none;"></div>
+
+          <div class="practice-actions">
+            <button id="nextQuestionBtn" class="btn-ai" style="display:none;">下一题 →</button>
+            <button id="finishPracticeBtn" class="btn-ai" style="display:none;background:#27ae60;">📊 查看结果</button>
+          </div>
+        </div>
+
+        <div id="practiceResult" style="display:none;"></div>
+      </section>
+
+      <!-- ===== 错题本 ===== -->
+      <section id="wrongBookView" class="view-section" style="display:none;">
+        <div class="section-header">
+          <h2>📕 错题本</h2>
+          <div class="wrong-book-filters">
+            <select id="wrongBookSubject">
+              <option value="all">全部科目</option>
+              <option value="数学">数学</option>
+              <option value="物理">物理</option>
+              <option value="英语">英语</option>
+              <option value="语文">语文</option>
+              <option value="化学">化学</option>
+            </select>
+            <select id="wrongBookStatus">
+              <option value="all">全部状态</option>
+              <option value="unmastered">未掌握</option>
+              <option value="mastered">已掌握</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="progress-overview-cards wrong-book-stats">
+          <div class="progress-card">
+            <div class="progress-card-icon">📕</div>
+            <h4>总错题</h4>
+            <p id="wrongTotal">0</p>
+          </div>
+          <div class="progress-card">
+            <div class="progress-card-icon">❌</div>
+            <h4>未掌握</h4>
+            <p id="wrongUnmastered">0</p>
+          </div>
+          <div class="progress-card">
+            <div class="progress-card-icon">✅</div>
+            <h4>已掌握</h4>
+            <p id="wrongMastered">0</p>
+          </div>
+          <div class="progress-card">
+            <div class="progress-card-icon">📈</div>
+            <h4>掌握率</h4>
+            <p id="wrongMasteryRate">0%</p>
+          </div>
+        </div>
+
+        <div id="wrongBookList" class="wrong-book-list">
+          <p class="empty-hint">还没有错题，去做题练习吧！</p>
+        </div>
+      </section>
+
+      <!-- ===== 专项训练 ===== -->
+      <section id="targetedView" class="view-section" style="display:none;">
+        <div class="section-header">
+          <h2>🎯 专项训练</h2>
+        </div>
+
+        <div class="targeted-analysis">
+          <h3>📊 薄弱知识点分析</h3>
+          <div id="weakPointsList" class="weak-points-list">
+            <p class="empty-hint">完成一些练习后，AI 会自动分析你的薄弱知识点</p>
+          </div>
+        </div>
+
+        <div class="targeted-actions">
+          <button id="analyzeWeakBtn" class="btn-ai">🔍 AI 分析薄弱点</button>
+          <button id="targetedPracticeBtn" class="btn-ai" style="background:#e74c3c;">🎯 针对薄弱点出题</button>
+        </div>
+
+        <div id="targetedArea" style="display:none;">
+          <div class="practice-progress-bar">
+            <span id="targetedProgressText">专项训练</span>
+          </div>
+          <div id="targetedQuestionCard" class="question-card"></div>
+          <div id="targetedFeedback" class="answer-feedback" style="display:none;"></div>
+          <div class="practice-actions">
+            <button id="targetedNextBtn" class="btn-ai" style="display:none;">下一题 →</button>
+            <button id="targetedFinishBtn" class="btn-ai" style="display:none;background:#27ae60;">📊 完成训练</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== AI辅导 ===== -->
+      <section id="aiTutorView" class="view-section" style="display:none;">
+        <div class="ai-student-container">
+          <div class="ai-nav">
+            <button class="ai-func-tab active" data-func="chat">💬 智能问答</button>
+            <button class="ai-func-tab" data-func="review">📝 错题复盘</button>
+            <button class="ai-func-tab" data-func="summary">📊 学习总结</button>
+          </div>
+
+          <!-- 智能问答 -->
+          <div id="aiFuncChat" class="ai-func-panel">
+            <div class="ai-chat-container">
+              <div class="ai-chat-messages" id="chatMessages">
+                <div class="ai-message">
+                  <div class="ai-avatar">🤖</div>
+                  <div class="ai-message-content">
+                    <h4>AI 学习助手</h4>
+                    <p>你好！我已经了解你的全部学习数据，可以帮你：</p>
+                    <ul>
+                      <li>📊 分析你的薄弱知识点和学习情况</li>
+                      <li>🔍 针对你的错题进行讲解</li>
+                      <li>💡 解答学习疑问、讲解知识点</li>
+                      <li>📋 制定复习计划和学习建议</li>
+                    </ul>
+                    <p>我会记住我们的对话，随时问我吧！</p>
+                  </div>
+                </div>
+              </div>
+              <div class="ai-chat-input">
+                <textarea id="chatInput" placeholder="问我任何学习问题，比如"我哪里薄弱""帮我分析最近的错题"..."></textarea>
+                <button id="voiceInputBtn" class="btn-voice" title="语音输入">🎤</button>
+                <button id="chatSendBtn" class="btn-ai">发送</button>
+                <button onclick="app.clearChatHistory()" class="btn-game-icon" title="清除聊天记录" style="font-size:0.9rem">🗑️</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 错题复盘 -->
+          <div id="aiFuncReview" class="ai-func-panel" style="display:none;">
+            <div class="review-container">
+              <div class="review-form">
+                <h3>📝 错题复盘</h3>
+                <div class="form-group">
+                  <label>选择要复盘的错题</label>
+                  <select id="reviewWrongSelect">
+                    <option value="">请选择错题</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>补充说明（可选）</label>
+                  <textarea id="reviewNote" placeholder="描述你做这道题时的思路或困惑..."></textarea>
+                </div>
+                <button id="reviewBtn" class="btn-ai">🔍 开始复盘</button>
+              </div>
+              <div class="review-result">
+                <h3>复盘分析</h3>
+                <div id="reviewResult" class="review-result-content">
+                  <p>选择一道错题开始复盘</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 学习总结 -->
+          <div id="aiFuncSummary" class="ai-func-panel" style="display:none;">
+            <div class="summary-container">
+              <div class="summary-form">
+                <h3>📊 AI 学习总结</h3>
+                <div class="form-group">
+                  <label>时间范围</label>
+                  <select id="summaryPeriod">
+                    <option value="week">本周</option>
+                    <option value="month" selected>本月</option>
+                    <option value="all">全部</option>
+                  </select>
+                </div>
+                <button id="summaryBtn" class="btn-ai">生成学习总结</button>
+              </div>
+              <div class="summary-result">
+                <h3>学习总结</h3>
+                <div id="summaryResult" class="summary-result-content">
+                  <p>点击按钮生成学习总结</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 学习统计 ===== -->
+      <section id="statsView" class="view-section" style="display:none;">
+        <div class="section-header"><h2>📊 学习统计</h2></div>
+        <div class="progress-overview">
+          <div class="progress-overview-cards">
+            <div class="progress-card"><div class="progress-card-icon">📝</div><h4>总做题</h4><p id="statsTotalQ">0</p></div>
+            <div class="progress-card"><div class="progress-card-icon">✅</div><h4>正确数</h4><p id="statsCorrect">0</p></div>
+            <div class="progress-card"><div class="progress-card-icon">📈</div><h4>正确率</h4><p id="statsAccuracy">0%</p></div>
+            <div class="progress-card"><div class="progress-card-icon">🔥</div><h4>连续学习</h4><p id="statsStreak">0天</p></div>
+          </div>
+        </div>
+        <div class="subject-analysis">
+          <h3>各科正确率</h3>
+          <div id="subjectStats" class="subject-analysis-grid"></div>
+        </div>
+        <div class="learning-trend">
+          <h3>最近学习记录</h3>
+          <div id="recentRecords" class="recent-records"></div>
+        </div>
+      </section>
+
+    </main>
+    <footer class="footer"><p>⚔️ 修炼不止，实力飙升！</p></footer>
+  </div>
+
+  <!-- 弹窗 -->
+  <div id="apiKeyModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header"><h3>⚙️ AI 设置</h3><span class="modal-close" onclick="app.closeModal('apiKeyModal')">&times;</span></div>
+      <div style="padding:20px">
+        <p style="margin-bottom:12px;color:#666">请输入 DeepSeek API Key：<a href="https://platform.deepseek.com" target="_blank">获取地址</a></p>
+        <p style="margin-bottom:12px">当前状态：<span id="apiKeyStatus" style="font-weight:bold">未配置</span></p>
+        <div class="form-group"><label>API Key</label><input type="password" id="apiKeyInput" placeholder="sk-xxxxxxxxxxxxxxxx" style="font-family:monospace"></div>
+        <div style="display:flex;gap:10px;margin-top:15px">
+          <button onclick="app.saveApiKey()" class="btn-ai" style="flex:1">💾 保存</button>
+          <button onclick="app.clearApiKey()" class="btn-secondary" style="flex:1">🗑️ 清除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header"><h3>📋 个人设置</h3><span class="modal-close" onclick="app.closeModal('settingsModal')">&times;</span></div>
+      <div style="padding:20px">
+        <div class="form-group">
+          <label>年级</label>
+          <select id="settingsGrade">
+            <option value="初一">初一</option><option value="初二" selected>初二</option><option value="初三">初三</option>
+            <option value="高一">高一</option><option value="高二">高二</option><option value="高三">高三</option>
+          </select>
+        </div>
+        <div class="form-group"><label>昵称</label><input type="text" id="settingsName" placeholder="昵称" value="同学"></div>
+        <button onclick="app.saveSettings()" class="btn-ai" style="width:100%;margin-top:10px">💾 保存</button>
+        <hr style="margin:20px 0;border-color:#eee">
+        <button onclick="app.clearAllData()" class="btn-secondary" style="width:100%;color:#e74c3c">🗑️ 清除所有数据</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="voiceModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header"><h3>🎤 语音识别</h3><span class="modal-close" onclick="app.closeModal('voiceModal')">&times;</span></div>
+      <div class="voice-modal-body">
+        <p class="voice-hint">请确认内容是否正确：</p>
+        <textarea id="voiceText" class="voice-textarea"></textarea>
+        <div class="voice-actions">
+          <button id="voiceRetryBtn" class="btn-secondary">🔄 重新录音</button>
+          <button id="voiceConfirmBtn" class="btn-ai">✅ 确认发送</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+

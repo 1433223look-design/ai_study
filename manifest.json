@@ -1,0 +1,16 @@
+{
+  "name": "AI修炼场 - 刷题升级",
+  "short_name": "AI修炼场",
+  "description": "游戏化刷题修炼系统，AI出题+升级打怪",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0a0e1a",
+  "theme_color": "#0a0e1a",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
