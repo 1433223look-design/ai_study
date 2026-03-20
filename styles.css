@@ -1893,7 +1893,7 @@ body {
   border: 2px solid #e0e0e0;
   border-radius: 12px;
   padding: 10px;
-  max-height: 140px;
+  max-height: 220px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -1947,6 +1947,46 @@ body {
   background: #ede9fe;
   color: #7c3aed;
   font-weight: 600;
+}
+
+/* 分组知识点选择器 */
+.topic-tag-grouped {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.topic-chapter-group {
+  width: 100%;
+  margin-bottom: 2px;
+}
+
+.topic-chapter-header {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4a90e2;
+  padding: 5px 8px;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.topic-chapter-header:hover {
+  background: rgba(74, 144, 226, 0.08);
+  color: #2563eb;
+}
+
+.topic-chapter-header.chapter-active {
+  color: #2563eb;
+  background: rgba(74, 144, 226, 0.1);
+}
+
+.topic-subtag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 0 4px 20px;
 }
 
 .topic-selected-info {
@@ -3800,32 +3840,97 @@ body::before {
     font-size: 0.95rem;
     line-height: 1.7;
   }
+
+  /* ---- 防误触：增大触控区域 & 间距 ---- */
+  .nav-tab {
+    min-height: 44px;
+    padding: 12px 18px;
+    font-size: 0.95rem;
+  }
   .option-btn {
-    padding: 12px 14px;
-    font-size: 0.9rem;
+    min-height: 48px;
+    padding: 14px 16px;
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+  }
+  .options-list {
+    gap: 12px;
   }
   .question-type-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 10px;
   }
   .question-type-card {
-    padding: 10px 6px;
+    min-height: 48px;
+    padding: 12px 8px;
   }
   .question-type-card .qt-desc {
     display: none;
+  }
+  .topic-tag {
+    min-height: 36px;
+    padding: 8px 14px;
+    font-size: 0.82rem;
+    line-height: 1.2;
+  }
+  .topic-tag-row {
+    gap: 8px;
   }
   .passage-area {
     max-height: 250px;
     padding: 14px;
   }
   .topic-selector {
-    max-height: 110px;
+    max-height: 180px;
   }
-  .topic-tag {
-    padding: 5px 10px;
-    font-size: 0.8rem;
-  }
-  .topic-tag-row {
+  .topic-subtag-row {
+    padding-left: 12px;
     gap: 6px;
+  }
+  .topic-chapter-header {
+    font-size: 0.82rem;
+    padding: 4px 6px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* 按钮类统一最小触控高度 */
+  .btn-ai, .btn-secondary, .btn-login, .btn-add {
+    min-height: 44px;
+  }
+  .btn-game-icon {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* 表单控件增大 */
+  .form-group select,
+  .form-group input {
+    min-height: 44px;
+    font-size: 1rem;
+  }
+}
+
+/* 触屏设备：禁用hover效果防止点击后残留高亮 */
+@media (hover: none) and (pointer: coarse) {
+  .nav-tab:hover,
+  .option-btn:hover:not(:disabled),
+  .topic-tag:hover,
+  .question-type-card:hover,
+  .btn-ai:hover,
+  .btn-secondary:hover {
+    background: inherit;
+    border-color: inherit;
+    color: inherit;
+  }
+  .nav-tab.active:hover {
+    background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(168,85,247,0.15));
+    color: var(--g-cyan);
+  }
+  .topic-tag.selected:hover {
+    border-color: #4a90e2;
+    background: #e8f2ff;
+    color: #2563eb;
   }
 }

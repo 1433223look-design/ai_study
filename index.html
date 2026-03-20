@@ -65,8 +65,28 @@
                 <option value="英语">英语</option>
                 <option value="语文">语文</option>
                 <option value="化学">化学</option>
+                <option value="生物">生物</option>
+                <option value="历史">历史</option>
+                <option value="道德与法治">道德与法治</option>
+                <option value="地理">地理</option>
               </select>
             </div>
+            <div class="form-group">
+              <label>📚 教材版本</label>
+              <select id="practiceTextbook">
+                <option value="">不限教材</option>
+              </select>
+            </div>
+            <div class="form-group" id="volumeGroup" style="display:none;">
+              <label>📖 册别</label>
+              <select id="practiceVolume">
+                <option value="">全部</option>
+                <option value="上册">上册</option>
+                <option value="下册">下册</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
             <div class="form-group">
               <label>难度</label>
               <select id="practiceDifficulty">
@@ -133,6 +153,10 @@
               <option value="英语">英语</option>
               <option value="语文">语文</option>
               <option value="化学">化学</option>
+              <option value="生物">生物</option>
+              <option value="历史">历史</option>
+              <option value="道德与法治">道德与法治</option>
+              <option value="地理">地理</option>
             </select>
             <select id="wrongBookStatus">
               <option value="all">全部状态</option>
@@ -176,58 +200,24 @@
           <h2>🎯 专项训练</h2>
         </div>
 
-        <!-- 查漏补缺诊断 -->
-        <div id="diagnosticSetup" class="diagnostic-setup-panel">
-          <h3>🔬 查漏补缺诊断</h3>
-          <p class="diagnostic-desc">告诉 AI 你的情况，自动生成诊断测试，帮你找出薄弱知识点</p>
-          <div class="form-row">
+        <div class="targeted-actions">
+          <div class="form-row" style="margin-bottom:12px;">
             <div class="form-group">
-              <label>科目</label>
-              <select id="diagnosticSubject">
+              <label>📚 学科</label>
+              <select id="targetedSubject">
+                <option value="">全部学科</option>
                 <option value="数学">数学</option>
                 <option value="物理">物理</option>
                 <option value="英语">英语</option>
                 <option value="语文">语文</option>
                 <option value="化学">化学</option>
+                <option value="生物">生物</option>
+                <option value="历史">历史</option>
+                <option value="道德与法治">道德与法治</option>
+                <option value="地理">地理</option>
               </select>
             </div>
           </div>
-          <div class="form-group">
-            <label>📝 描述你的情况（考试范围、单元、最近学到哪里等）</label>
-            <div class="diagnostic-input-wrapper">
-              <textarea id="diagnosticContext" class="diagnostic-context-input" rows="3" placeholder="例如：准备月考，范围是第一单元到第三单元；最近学了二次函数，感觉有些吃力..."></textarea>
-              <button id="diagnosticVoiceBtn" class="btn-voice diagnostic-voice-btn" title="语音输入">🎤</button>
-            </div>
-            <div id="diagnosticVoiceStatus" class="diagnostic-voice-status" style="display:none;"></div>
-          </div>
-          <button id="startDiagnosticBtn" class="btn-ai" style="background:#8e44ad;">🔬 开始诊断测试</button>
-        </div>
-
-        <div id="diagnosticArea" style="display:none;">
-          <div class="practice-progress-bar">
-            <span id="diagnosticProgressText">诊断测试</span>
-          </div>
-          <div id="diagnosticQuestionCard" class="question-card"></div>
-          <div id="diagnosticFeedback" class="answer-feedback" style="display:none;"></div>
-          <div class="practice-actions">
-            <button id="diagnosticNextBtn" class="btn-ai" style="display:none;">下一题 →</button>
-            <button id="diagnosticFinishBtn" class="btn-ai" style="display:none;background:#27ae60;">📊 查看诊断报告</button>
-          </div>
-        </div>
-
-        <div id="diagnosticResult" style="display:none;"></div>
-
-        <hr class="section-divider">
-
-        <div class="targeted-analysis">
-          <h3>📊 薄弱知识点分析（基于错题）</h3>
-          <div id="weakPointsList" class="weak-points-list">
-            <p class="empty-hint">完成一些练习后，AI 会自动分析你的薄弱知识点</p>
-          </div>
-        </div>
-
-        <div class="targeted-actions">
-          <button id="analyzeWeakBtn" class="btn-ai">🔍 AI 分析薄弱点</button>
           <button id="targetedPracticeBtn" class="btn-ai" style="background:#e74c3c;">🎯 针对薄弱点出题</button>
         </div>
 
