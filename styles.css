@@ -3914,23 +3914,46 @@ body::before {
 
 /* 触屏设备：禁用hover效果防止点击后残留高亮 */
 @media (hover: none) and (pointer: coarse) {
-  .nav-tab:hover,
-  .option-btn:hover:not(:disabled),
-  .topic-tag:hover,
-  .question-type-card:hover,
-  .btn-ai:hover,
-  .btn-secondary:hover {
-    background: inherit;
-    border-color: inherit;
-    color: inherit;
+  .nav-tab:hover {
+    background: transparent;
+    color: var(--g-text2);
+    transform: none;
+    box-shadow: none;
   }
   .nav-tab.active:hover {
     background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(168,85,247,0.15));
     color: var(--g-cyan);
   }
+  .option-btn:hover:not(:disabled) {
+    transform: none;
+    box-shadow: none;
+  }
+  .topic-tag:hover {
+    transform: none;
+    box-shadow: none;
+  }
   .topic-tag.selected:hover {
     border-color: #4a90e2;
     background: #e8f2ff;
     color: #2563eb;
+  }
+  .question-type-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .btn-ai:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .btn-secondary:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* 确保select下拉框在手机端可正常点击 */
+  .form-group select {
+    -webkit-appearance: menulist;
+    appearance: menulist;
+    cursor: pointer;
   }
 }

@@ -1208,25 +1208,28 @@
   }
 
   setupEventListeners() {
-    // 手机端防误触：滑动过程中忽略点击
+    // 手机端防误触：基于位移判断，只有手指滑动超过阈值才算滚动
     this._isScrolling = false;
-    this._scrollTimer = null;
-    window.addEventListener('scroll', () => {
-      this._isScrolling = true;
-      clearTimeout(this._scrollTimer);
-      this._scrollTimer = setTimeout(() => { this._isScrolling = false; }, 300);
+    this._touchStartY = 0;
+    this._scrollThreshold = 10; // px
+    window.addEventListener('touchstart', (e) => {
+      this._isScrolling = false;
+      this._touchStartY = e.touches[0].clientY;
     }, { passive: true });
-    window.addEventListener('touchmove', () => {
-      this._isScrolling = true;
-      clearTimeout(this._scrollTimer);
-      this._scrollTimer = setTimeout(() => { this._isScrolling = false; }, 300);
+    window.addEventListener('touchmove', (e) => {
+      const dy = Math.abs(e.touches[0].clientY - this._touchStartY);
+      if (dy > this._scrollThreshold) this._isScrolling = true;
+    }, { passive: true });
+    window.addEventListener('touchend', () => {
+      setTimeout(() => { this._isScrolling = false; }, 50);
     }, { passive: true });
 
     // 导航切换
     document.querySelectorAll('.nav-tab').forEach(tab => {
       tab.addEventListener('click', (e) => {
         if (this._isScrolling) return;
-        this.switchView(e.target.dataset.view);
+        const view = e.target.closest('.nav-tab')?.dataset.view;
+        if (view) this.switchView(view);
       });
     });
 
